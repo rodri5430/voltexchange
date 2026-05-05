@@ -25,8 +25,8 @@ SERVER_ERROR = 500
 @app.route('/', methods = ["GET"])
 def home():
     return "Welcome to API!"
-
-@app.route('/login', methods=['POST'])
+    
+@app.route('/api/auth/login', methods=['POST'])
 def login():
     data = request.get_json()
     if "username" not in data or "password" not in data:
@@ -45,7 +45,7 @@ def login():
     return jsonify(user), OK_CODE
 
 
-@app.route("/register", methods=['POST'])
+@app.route('/api/auth/register', methods=['POST'])
 def register():
     data = request.get_json()
 
