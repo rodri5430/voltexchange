@@ -82,3 +82,14 @@ def auth_required(f):
         return f(*args, **kwargs)
 
     return decorated
+
+@app.route('/api/meters/readings', methods=['POST'])
+
+    def add_readings():
+        data = request.get_json();
+        result = db.add_reading(data) 
+        return jsonify({"status": "recorded", "data": result}), 201
+@app.route('/api/admin/anomalies', methods=['GET'])
+@app.route('/api/market/buy', methods=['POST'])
+@app.route('/api/market/match', methods=['POST'])
+/api/market/buy
