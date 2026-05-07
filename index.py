@@ -92,4 +92,3 @@ def auth_required(f):
 @app.route('/api/admin/anomalies', methods=['GET'])
 @app.route('/api/market/buy', methods=['POST'])
 @app.route('/api/market/match', methods=['POST'])
-/api/market/buy
