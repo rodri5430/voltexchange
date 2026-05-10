@@ -1,9 +1,7 @@
 import os
+import json
 from datetime import datetime, timedelta
 from functools import wraps
-
-import jwt
-import psycopg2
 from flask import Flask, jsonify, request
 
 import db
@@ -60,35 +58,35 @@ def register():
     return jsonify(user), SUCCESS_CODE
 
 
-def auth_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if "Authorization" not in request.headers:
-            return jsonify({"error": "Token not provided"}), FORBIDDEN_CODE
-
-        token = request.headers['Authorization']
-        # Remove Bearer from token
-        token = token.split(' ')[1]
-
-        try:
-            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            return jsonify({"error": "Token expirado", "expired": True}), UNAUTHORIZED_CODE
-        except jwt.InvalidTokenError:
-            return jsonify({"error": "Token inválido"}), FORBIDDEN_CODE
-
-        request.user = db.get_user(data['user_id'])
-
-        return f(*args, **kwargs)
-
-    return decorated
 
 @app.route('/api/meters/readings', methods=['POST'])
+def add_readings():
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({"error": "invalid parameters"}), BAD_REQUEST_CODE
+        
+        contador_id = data.get('contador_id')
+        leitura_kwh = data.get('leitura_kwh')
+        
+        if contador_id is None or leitura_kwh is None:
+            return jsonify({"error": "invalid parameters"}), BAD_REQUEST_CODE
+    
+        
+        resultado = db.add_reading(contador_id, leitura_kwh, json.dumps(data)) 
+        return jsonify(resultado), SUCCESS_CODE
 
-    def add_readings():
-        data = request.get_json();
-        result = db.add_reading(data) 
-        return jsonify({"status": "recorded", "data": result}), 201
 @app.route('/api/admin/anomalies', methods=['GET'])
+def get_anomalies():
+    
+    lista_anomalias = db.get_anomalies()
+    
+    if not lista_anomalias:
+        return jsonify("No anomalies"), OK_CODE
+    
+    return jsonify(lista_anomalias), OK_CODE
+
 @app.route('/api/market/buy', methods=['POST'])
 @app.route('/api/market/match', methods=['POST'])
+def ad():
+    return 0 
