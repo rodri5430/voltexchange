@@ -3,7 +3,7 @@ import json
 from datetime import datetime, timedelta
 from functools import wraps
 from flask import Flask, jsonify, request
-
+import jwt
 import db
 
 app = Flask(__name__)
@@ -64,7 +64,7 @@ def add_readings():
         data = request.get_json()
         
         if not data:
-            return jsonify({"error": "invalid parameters"}), BAD_REQUEST_CODE
+            return jsonify({"error": "missing data"}), NO_CONTENT_CODE
         
         contador_id = data.get('contador_id')
         leitura_kwh = data.get('leitura_kwh')
@@ -79,14 +79,61 @@ def add_readings():
 @app.route('/api/admin/anomalies', methods=['GET'])
 def get_anomalies():
     
+    
     lista_anomalias = db.get_anomalies()
     
     if not lista_anomalias:
-        return jsonify("No anomalies"), OK_CODE
+        return jsonify([]), NOT_FOUND_CODE
     
     return jsonify(lista_anomalias), OK_CODE
 
 @app.route('/api/market/buy', methods=['POST'])
+
+def buy():
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({"error": "missing data"}), NO_CONTENT_CODE
+    
+    utilizador_id = data.get('utilizador_id')
+    oferta_id = data.get('oferta_id')
+    
+    if not utilizador_id or not oferta_id:
+        return jsonify({"error": "Incomplete purchase details"}), BAD_REQUEST_CODE
+    
+    deu_erro = db.execute_buy(utilizador_id, oferta_id)
+    
+    if deu_erro:
+        return jsonify({"error": deu_erro}),400
+    
+    return jsonify({"message": "Purchase Done!", "detalhes": f"A oferta {oferta_id} foi adquirida pelo utilizador {utilizador_id}."}), SUCCESS_CODE
+
+@app.route('/api/market/order', methods=['POST'])
+def order():
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({"error": "missing data"}), NO_CONTENT_CODE
+    
+    comprador_id = data.get('utilizador_id')
+    quantidade = data.get('quantidade')
+    preco_max = data.get('preco_maximo')
+    
+    if not all([comprador_id, quantidade, preco_max]):
+        return jsonify({"error": "incomplete parameters"}), BAD_REQUEST_CODE
+    
+    deu_erro = db.execute_create_order(comprador_id, quantidade, preco_max)
+    
+    if deu_erro:
+        return jsonify({"error": deu_erro}), BAD_REQUEST_CODE
+    
+    return jsonify({"message": "Ordem de compra registada!", "detalhes": f"Procura de {quantidade} kWh até {preco_max}€/kWh."}), SUCCESS_CODE   
+
 @app.route('/api/market/match', methods=['POST'])
-def ad():
-    return 0 
+def match():
+    deu_erro = db.execute_matching_engine()
+    
+    if deu_erro:
+        return jsonify({"error": deu_erro}), BAD_REQUEST_CODE
+    
+    return jsonify({"message": "Motor de matching executado com sucesso!", "detalhes": "As ordens compatíveis foram processadas e as transações geradas."}), SUCCESS_CODE
