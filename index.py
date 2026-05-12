@@ -22,7 +22,7 @@ SERVER_ERROR = 500
 
 @app.route('/', methods = ["GET"])
 def home():
-    return "Welcome to API!"
+    return "Olá Bem-Vindo à VoltExchange!!"
     
 @app.route('/api/auth/login', methods=['POST'])
 def login():
@@ -104,7 +104,7 @@ def buy():
     deu_erro = db.execute_buy(utilizador_id, oferta_id)
     
     if deu_erro:
-        return jsonify({"error": deu_erro}),400
+        return jsonify({"error": deu_erro}), BAD_REQUEST_CODE
     
     return jsonify({"message": "Purchase Done!", "detalhes": f"A oferta {oferta_id} foi adquirida pelo utilizador {utilizador_id}."}), SUCCESS_CODE
 
@@ -136,4 +136,4 @@ def match():
     if deu_erro:
         return jsonify({"error": deu_erro}), BAD_REQUEST_CODE
     
-    return jsonify({"message": "Motor de matching executado com sucesso!", "detalhes": "As ordens compatíveis foram processadas e as transações geradas."}), SUCCESS_CODE
+    return jsonify({"message": "Matching executed with sucess!"}), SUCCESS_CODE
