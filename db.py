@@ -111,11 +111,9 @@ def get_anomalies():
         return error
     finally:
         if conn:
-            cur.close()
             conn.close()
             
     return resultado
-
 def execute_buy(comprador_id, oferta_id):
     try:
         with get_connection() as conn:
