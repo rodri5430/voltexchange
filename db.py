@@ -6,7 +6,12 @@ import psycopg2
 
 
 def get_connection():
-    return psycopg2.connect(host=os.environ.get("DATABASE_HOST"), database = os.environ.get("DATABASE_NAME"), user=os.environ.get("DATABASE_USER"), password = os.environ.get("PASSWORD"))
+  return psycopg2.connect(
+        host="aid.estgoh.ipc.pt", 
+        database="db2024153215", 
+        user="a2024153215", 
+        password="RumoAo20",
+    )
 
 def user_exists(user):
     try:
