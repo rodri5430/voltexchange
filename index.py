@@ -113,17 +113,15 @@ def buy():
     if not utilizador_id or not oferta_id:
         return jsonify({"error": "Incomplete purchase details"}), 400
     
-    # Chamada à DB
-    resultado = db.execute_buy(utilizador_id, oferta_id)
-    
-    # Se o resultado for True, a compra correu BEM
+    resultado = db.execute_buy(utilizador_id, oferta_id) 
+
     if resultado is True:
         return jsonify({
             "message": "Purchase Done!", 
             "detalhes": f"A oferta {oferta_id} foi adquirida pelo utilizador {utilizador_id}."
         }), 200
     
-    # Se não for True, o 'resultado' contém a mensagem de erro da DB/Procedure
+   
     return jsonify({"error": "Purchase Failed", "reason": resultado}), 400
 
 
