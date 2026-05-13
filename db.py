@@ -14,7 +14,7 @@ def test_db_connection():
         conn = get_connection() 
         with conn.cursor() as cur:
             # Uma query simples que não altera dados
-            cur.execute("SELECT version();")
+            cur.execute("select * from leituras WHERE ContadorID = 2.1")
             version = cur.fetchone()
             # Se chegou aqui, a conexão foi bem sucedida
             return f"Conexão completa! PostgreSQL: {version[0]}"
