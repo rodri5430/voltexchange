@@ -31,26 +31,31 @@ def user_exists(username):
 
 
 def login(username, password):
+    conn = None
     user = None
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT UtilizadorID, username, password FROM Utilizadores WHERE username = %s", [username])
-                user_tuple = cur.fetchone()
+        conn = get_connection()
+        with conn.cursor() as cur:
+            cur.execute("SELECT UtilizadorID, username, password FROM Utilizadores WHERE username = %s", [username])
+            user_tuple = cur.fetchone()
 
-                if user_tuple:
-                    user_id = user_tuple[0]
-                    db_username = user_tuple[1]
-                    hashed_password = user_tuple[2]
+            if user_tuple:
+                user_id = user_tuple[0]
+                db_username = user_tuple[1]
+                hashed_password = user_tuple[2] # A password que vem da BD
 
-                    if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')): 
-                        user = {"id": user_id, "username": db_username }
-                        
-    except (Exception, psycopg2.Error) as error :
-        return error
+                # Garantimos que comparamos bytes com bytes
+                if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')): 
+                    user = {"id": user_id, "username": db_username}
+    
+    except (Exception, psycopg2.Error) as error:
+        print(f"Erro no Login: {error}")
+        return str(error) # Para veres o erro no Postman se algo falhar
+    
     finally:
-        if conn:
+        if conn is not None:
             conn.close()
+            
     return user
 
 
