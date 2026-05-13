@@ -82,8 +82,8 @@ def add_readings():
         
         resultado = db.add_reading(contador_id, leitura_kwh, data)
         status_code = SUCCESS_CODE if resultado else BAD_REQUEST_CODE
-    
-        return jsonify({"success": resultado}), status_code
+        
+        return jsonify({"success": data}), status_code
 
 
 
