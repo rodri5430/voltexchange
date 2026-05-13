@@ -33,8 +33,6 @@ def login(username, password):
     try:
         with get_connection() as conn:
             with conn.cursor() as cur:
-                # 1. Procuramos o utilizador apenas pelo username
-                # Importante: mudei para "Utilizadores" para ser igual ao add_user
                 cur.execute("SELECT UtilizadorID, username, password FROM Utilizadores WHERE username = %s", [username])
                 user_tuple = cur.fetchone()
 
@@ -106,12 +104,11 @@ def get_anomalies():
     try:
         conn = get_connection()
         with conn.cursor() as cur:
-            # 2. QUERY CORRIGIDA (Sem WHEREWHERE)
             query = """
                 SELECT LeituraID, ContadorID, DataHora, KWh_Leitura, DadosAudit 
                 FROM Leituras 
-                WHERE (DadosAudit->>'temperatura')::int > 80 
-                   OR (DadosAudit->>'erro_codigo') IS NOT NULL 
+                WHERE (DadosAudit ? 'temperatura' AND (DadosAudit->>'temperatura')::NUMERIC > 80) OR 
+                   (DadosAudit ? 'erro_codigo' AND DadosAudit->>'erro_codigo' IS NOT NULL)
                 ORDER BY DataHora DESC
             """
             cur.execute(query)
