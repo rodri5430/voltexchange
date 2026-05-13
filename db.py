@@ -14,17 +14,18 @@ def get_connection():
         password="RumoAo20",
     )
 
-def user_exists(user):
+def user_exists(username):
     conn = None
+    count = 0 
     try:
         conn = get_connection()
         with conn.cursor() as cur:
-                cur.execute("SELECT COUNT(*) FROM users WHERE username = %s", [user["username"]])
-                count = cur.fetchone()[0]
-    except (Exception, psycopg2.Error) as error :
-        print ("Error while connecting to PostgreSQL", error)
+            cur.execute("SELECT COUNT(*) FROM Utilizadores WHERE username = %s", (username,))
+            count = cur.fetchone()[0]
+    except (Exception, psycopg2.Error) as error:
+        print("Erro ao verificar utilizador:", error)
     finally:
-        if conn :
+        if conn:
             conn.close()
     return count > 0
 
@@ -57,27 +58,31 @@ def login(username, password):
 #https://www.geeksforgeeks.org/python/hashing-passwords-in-python-with-bcrypt/
 def add_user(username, passwordText):
     conn = None
-    bytes = passwordText.encode('utf-8')
+    user_id = None
+    
+    # Hashing
+    password_bytes = passwordText.encode('utf-8')
     salt = bcrypt.gensalt()
-    hash = bcrypt.hashpw(bytes, salt)
-    passwordHashed = hash.decode('utf-8')
+    passwordHashed = bcrypt.hashpw(password_bytes, salt).decode('utf-8')
     
     try:
-        
         conn = get_connection()
-            with conn.cursor() as cur:
-                cur.execute("INSERT INTO Utilizadores (username, password) VALUES (%s, %s) RETURNING UtilizadorID", (username, passwordHashed))
-                conn.commit()
-                id = cur.fetchone()[0]
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO Utilizadores (username, password) VALUES (%s, %s) RETURNING UtilizadorID", 
+                (username, passwordHashed)
+            )
+            conn.commit()
+            user_id = cur.fetchone()[0]
     except (Exception, psycopg2.Error) as error:
+        print("Erro ao inserir utilizador:", error)
         if conn:
             conn.rollback()
-        print(error)
         return None
     finally:
         if conn:
             conn.close()
-    return id
+    return user_id
     
 def add_reading(contador_id, kwh_valor, dados_audit):
     conn = None
