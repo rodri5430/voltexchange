@@ -65,7 +65,7 @@ def add_user(username, passwordText):
     conn = None
     user_id = None
     
-    # Hashing (Correto)
+    # Hashing 
     password_bytes = passwordText.encode('utf-8')
     salt = bcrypt.gensalt()
     passwordHashed = bcrypt.hashpw(password_bytes, salt).decode('utf-8')
@@ -86,8 +86,7 @@ def add_user(username, passwordText):
         if conn:
             conn.rollback()
         print(f"Erro na BD: {error}")
-        # IMPORTANTE: str(error) transforma o objeto em texto para o Flask não crashar
-        return str(error) 
+        return error
         
     finally:
         if conn is not None:
@@ -138,20 +137,19 @@ def get_anomalies():
     return resultado
 
 def execute_buy(comprador_id, oferta_id):
-    conn = None # Definir fora para o 'finally' e 'except' o reconhecerem
+    conn = None 
     try:
         conn = get_connection()
         with conn.cursor() as cur:
-            # Chama a Procedure do PostgreSQL
             cur.execute("CALL sp_ExecutarCompraDireta(%s, %s)", (comprador_id, oferta_id))
             conn.commit()
-            return True # SUCESSO: Retorna True se o COMMIT funcionar
+            return True
             
     except (Exception, psycopg2.Error) as error:
         print(f"Erro na compra: {error}")
         if conn:
             conn.rollback()
-        return str(error) # ERRO: Retorna a mensagem de erro para o Postman
+        return error
         
     finally:
         if conn:
@@ -173,7 +171,7 @@ def execute_create_order(comprador_id, quantidade, preco_max):
         print(f"Erro ao criar ordem: {error}")
         if conn:
             conn.rollback()
-        return str(error)
+        return error
         
     finally:
         if conn:
@@ -186,7 +184,7 @@ def execute_matching_engine():
                 cur.execute("CALL sp_MatchingEngine()")
                 conn.commit()
     except (Exception, psycopg2.Error) as error:
-        print(error)
+        return error
         
         if conn:
             conn.rollback()
