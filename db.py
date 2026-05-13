@@ -77,7 +77,7 @@ def add_user(username, passwordText):
     except (Exception, psycopg2.Error) as error:
         if conn:
             conn.rollback()
-        return error
+        return str(error)
     finally:
         if conn:
             conn.close()
