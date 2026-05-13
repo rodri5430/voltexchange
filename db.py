@@ -15,9 +15,10 @@ def get_connection():
     )
 
 def user_exists(user):
+    conn = None
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
+        conn = get_connection()
+        with conn.cursor() as cur:
                 cur.execute("SELECT COUNT(*) FROM users WHERE username = %s", [user["username"]])
                 count = cur.fetchone()[0]
     except (Exception, psycopg2.Error) as error :
