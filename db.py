@@ -47,8 +47,7 @@ def login(username, password):
                         user = {"id": user_id, "username": db_username }
                         
     except (Exception, psycopg2.Error) as error :
-        print (error)
-        return None
+        return error
     finally:
         if conn:
             conn.close()
@@ -67,7 +66,7 @@ def add_user(username, passwordText):
     
     try:
         conn = get_connection()
-        # ESTA LINHA ABAIXO (68) tem de estar alinhada com a de cima:
+        
         with conn.cursor() as cur:
             cur.execute(
                 "INSERT INTO Utilizadores (username, password) VALUES (%s, %s) RETURNING UtilizadorID", 
@@ -76,9 +75,9 @@ def add_user(username, passwordText):
             conn.commit()
             user_id = cur.fetchone()[0]
     except (Exception, psycopg2.Error) as error:
-        return error
         if conn:
             conn.rollback()
+        return error
     finally:
         if conn:
             conn.close()
