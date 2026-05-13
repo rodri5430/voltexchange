@@ -40,11 +40,11 @@ def login():
         return jsonify({"error": "Check credentials"}), NOT_FOUND_CODE
 
     token = jwt.encode(
-        {'user_id': user['id'], 'exp': datetime.utcnow() + timedelta(minutes=5)}, app.config['SECRET_KEY'], 'HS256')
+        {'user_id': user['id'], 'exp': datetime.now(timezone.utc)+ timedelta(minutes=5)}, app.config['SECRET_KEY'], 'HS256')
 
-    user["token"] = token.decode('UTF-8')
+    user["token"] = token
+    #user["token"] = token
     return jsonify(user), OK_CODE
-
 
 
 #REGISTER
