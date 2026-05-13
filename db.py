@@ -1,5 +1,7 @@
+import json
 import os
 import bcrypt
+import psycopg2
 from re import I
 
 import psycopg2
@@ -86,6 +88,8 @@ def add_reading(contador_id, kwh_valor, dados_audit):
     try:
         with get_connection() as conn:
             with conn.cursor() as cur:
+                dados_processados = json.dumps(dados_audit)
+                
                 cur.execute("INSERT INTO Leituras (ContadorID, DataHora, KWh_Leitura, DadosAudit)  VALUES (%s, CURRENT_TIMESTAMP, %s, %s)", (contador_id, kwh_valor, dados_audit))
                 conn.commit()
             
