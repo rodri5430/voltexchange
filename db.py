@@ -104,7 +104,7 @@ def get_anomalies():
     try:
         with get_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT LeituraID, ContadorID, DataHora, KWh_Leitura, DadosAudit FROM Leituras WHEREWHERE (DadosAudit->>'temperatura')::int > 80 OR (DadosAudit->>'erro_codigo') IS NOT NULL ORDER BY DataHora DESC")
+                cur.execute("SELECT LeituraID, ContadorID, DataHora, KWh_Leitura, DadosAudit FROM Leituras WHERE (DadosAudit->>'temperatura')::int > 80 OR (DadosAudit->>'erro_codigo') IS NOT NULL ORDER BY DataHora DESC")
                 
                 resultado = cur.fetchall()
     except (Exception, psycopg2.Error) as error:
