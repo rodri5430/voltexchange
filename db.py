@@ -59,14 +59,13 @@ def add_user(username, passwordText):
     conn = None
     user_id = None
     
-    # Hashing
+    # Hashing (Correto)
     password_bytes = passwordText.encode('utf-8')
     salt = bcrypt.gensalt()
     passwordHashed = bcrypt.hashpw(password_bytes, salt).decode('utf-8')
     
     try:
         conn = get_connection()
-        
         with conn.cursor() as cur:
             cur.execute(
                 "INSERT INTO Utilizadores (username, password) VALUES (%s, %s) RETURNING UtilizadorID", 
@@ -74,15 +73,19 @@ def add_user(username, passwordText):
             )
             conn.commit()
             user_id = cur.fetchone()[0]
+            # Se chegou aqui, retornamos o ID
+            return user_id
+            
     except (Exception, psycopg2.Error) as error:
         if conn:
             conn.rollback()
-        return str(error)
+        print(f"Erro na BD: {error}")
+        # IMPORTANTE: str(error) transforma o objeto em texto para o Flask não crashar
+        return str(error) 
+        
     finally:
-        if conn:
+        if conn is not None:
             conn.close()
-    return user_id
-    
 def add_reading(contador_id, kwh_valor, dados_audit):
     conn = None
     try:
