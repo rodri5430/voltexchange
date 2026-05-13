@@ -8,8 +8,7 @@ def get_connection():
         host="aid.estgoh.ipc.pt", 
         database="db2024153215", 
         user="a2024153215", 
-        password="RumoAo20",
-        port = "5432"
+        password="RumoAo20"
     )
 
 def user_exists(user):
