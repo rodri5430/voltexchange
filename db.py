@@ -100,13 +100,11 @@ def add_reading(contador_id, kwh_valor, dados_audit):
     return True
 
 def get_anomalies():
-    # 1. INICIALIZAR A VARIÁVEL FORA DO TRY (Obrigatório para o Vercel)
     conn = None
     resultado = []
     
     try:
         conn = get_connection()
-        # O 'with' aqui é seguro porque conn já existe se chegar a esta linha
         with conn.cursor() as cur:
             # 2. QUERY CORRIGIDA (Sem WHEREWHERE)
             query = """
@@ -120,9 +118,9 @@ def get_anomalies():
             resultado = cur.fetchall()
             
     except (Exception, psycopg2.Error) as error:
-        # 3. LOG DO ERRO (Aparece no painel do Vercel para debug)
-        print(f"Erro na BD: {error}")
-        return [] # Retorna lista vazia para a API não dar erro 500
+      )
+       
+        return erro
         
     finally:
         # 4. FECHO SEGURO (Só fecha se conn foi realmente atribuído)
