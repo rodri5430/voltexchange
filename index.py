@@ -24,11 +24,7 @@ SERVER_ERROR = 500
 #PAGINA ENTRADA
 @app.route('/', methods = ["GET"])
 def home():
-    try:
-        status = db.test_db_connection() # Assume que criaste esta função no db.py
-        return f"Conexão com a BD completa: {status}"
-    except Exception as e:
-        return f"Erro na conexão: {str(e)}", SERVER_ERROR
+   return "Olá, Utilizador"
   
   
 #LOGIN  
