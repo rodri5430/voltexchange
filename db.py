@@ -2,9 +2,6 @@ import json
 import os
 import bcrypt
 import psycopg2
-from re import I
-
-import psycopg2
 
 
 def get_connection():
