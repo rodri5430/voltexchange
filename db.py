@@ -131,22 +131,25 @@ def get_anomalies():
             
     return resultado
 
-def execute_buy(comprador_id, oferta_id):
+f execute_buy(comprador_id, oferta_id):
+    conn = None # Definir fora para o 'finally' e 'except' o reconhecerem
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute("CALL sp_ExecutarCompraDireta(%s, %s)", (comprador_id, oferta_id))
-                conn.commit()
+        conn = get_connection()
+        with conn.cursor() as cur:
+            # Chama a Procedure do PostgreSQL
+            cur.execute("CALL sp_ExecutarCompraDireta(%s, %s)", (comprador_id, oferta_id))
+            conn.commit()
+            return False # SUCESSO: Retorna True se o COMMIT funcionar
+            
     except (Exception, psycopg2.Error) as error:
-        print(error)
+        print(f"Erro na compra: {error}")
         if conn:
             conn.rollback()
+        return str(error) # ERRO: Retorna a mensagem de erro para o Postman
         
-        return True
     finally:
         if conn:
             conn.close()
-    return False
 
 def execute_create_order(comprador_id, quantidade, preco_max):
     try:
