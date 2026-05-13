@@ -76,10 +76,9 @@ def add_user(username, passwordText):
             conn.commit()
             user_id = cur.fetchone()[0]
     except (Exception, psycopg2.Error) as error:
-        print("Erro ao inserir utilizador:", error)
+        return str(error)
         if conn:
             conn.rollback()
-        return None
     finally:
         if conn:
             conn.close()
