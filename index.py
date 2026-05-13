@@ -73,8 +73,8 @@ def add_readings():
         if not data:
             return jsonify({"error": "missing data"}), NO_CONTENT_CODE
         
-        contador_id = data.get('contador_id')
-        leitura_kwh = data.get('leitura_kwh')
+        contador_id = data.get('ContadorID')
+        leitura_kwh = data.get('KWh_Leitura')
         
         if contador_id is None or leitura_kwh is None:
             return jsonify({"error": "invalid parameters"}), BAD_REQUEST_CODE
