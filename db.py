@@ -152,23 +152,26 @@ def execute_buy(comprador_id, oferta_id):
             conn.close()
 
 def execute_create_order(comprador_id, quantidade, preco_max):
+    conn = None
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
+        conn = get_connection()
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO OrdensCompra (CompradorID, QuantidadeKWh, PrecoMaximo, Estado) VALUES (%s, %s, %s, 'PENDENTE')", 
+                (comprador_id, quantidade, preco_max)
+            )
+            conn.commit()
+            return True
             
-                cur.execute("INSERT INTO OrdensCompra (CompradorID, QuantidadeKWh, PrecoMaximo, Estado) VALUES (%s, %s, %s, 'PENDENTE')", (comprador_id, quantidade, preco_max))
-                
-                conn.commit()
     except (Exception, psycopg2.Error) as error:
-        print(error)
+        print(f"Erro ao criar ordem: {error}")
         if conn:
             conn.rollback()
-        return True
+        return str(error)
+        
     finally:
         if conn:
             conn.close()
-
-    return False
 
 def execute_matching_engine():
     try:
