@@ -133,9 +133,9 @@ def order():
     if not data:
         return jsonify({"error": "missing data"}), NO_CONTENT_CODE
     
-    comprador_id = data.get('utilizador_id')
+    comprador_id = data.get('comprador_id')
     quantidade = data.get('quantidade')
-    preco_max = data.get('preco_maximo')
+    preco_max = data.get('preco_max')
     
     if not all([comprador_id, quantidade, preco_max]):
         return jsonify({"error": "incomplete parameters"}), BAD_REQUEST_CODE
