@@ -140,10 +140,10 @@ def order():
     if not all([comprador_id, quantidade, preco_max]):
         return jsonify({"error": "incomplete parameters"}), BAD_REQUEST_CODE
     
-    deu_erro = db.execute_create_order(comprador_id, quantidade, preco_max)
+    resultado = db.execute_create_order(comprador_id, quantidade, preco_max)
     
-    if deu_erro:
-        return jsonify({"error": deu_erro}), BAD_REQUEST_CODE
+    if not resultado:
+        return jsonify({"error": resultado}), BAD_REQUEST_CODE
     
     return jsonify({"message": "Ordem de compra registada!", "detalhes": f"Procura de {quantidade} kWh até {preco_max}€/kWh."}), SUCCESS_CODE   
 
