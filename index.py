@@ -43,7 +43,6 @@ def login():
         {'user_id': user['id'], 'exp': datetime.utcnow() + timedelta(minutes=5)}, app.config['SECRET_KEY'], 'HS256')
 
     user["token"] = token.decode('UTF-8')
-    #user["token"] = token
     return jsonify(user), OK_CODE
 
 
@@ -59,7 +58,7 @@ def register():
     if (db.user_exists(data)):
         return jsonify({"error": "user already exists"}), BAD_REQUEST_CODE
 
-    user = db.add_user(data)
+    user = db.add_user(data['username'], data['password'])
 
     return jsonify(user), SUCCESS_CODE
 
@@ -81,7 +80,7 @@ def add_readings():
             return jsonify({"error": "invalid parameters"}), BAD_REQUEST_CODE
     
         
-        resultado = db.add_reading(contador_id, leitura_kwh, json.dumps(data)) 
+        resultado = db.add_reading(contador_id, leitura_kwh, data)
         status_code = SUCCESS_CODE if resultado else BAD_REQUEST_CODE
     
         return jsonify({"success": resultado}), status_code
