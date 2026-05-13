@@ -36,14 +36,16 @@ def login(nome, password):
     try:
         conn = get_connection()
         with conn.cursor() as cur:
+            # Procuramos agora pelo campo Nome
             cur.execute("SELECT UtilizadorID, Nome, PasswordHash FROM Utilizadores WHERE Nome = %s", [nome])
             user_tuple = cur.fetchone()
 
             if user_tuple:
-                user_id, nome, hashed_password = user_tuple
+                user_id, db_nome, hashed_password = user_tuple
 
+                # Verificamos a password
                 if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')): 
-                    user = {"id": user_id, "nome": nome}
+                    user = {"id": user_id, "nome": db_nome}
     
     except (Exception, psycopg2.Error) as error:
         return str(error)
