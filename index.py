@@ -105,20 +105,26 @@ def buy():
     data = request.get_json()
     
     if not data:
-        return jsonify({"error": "missing data"}), NO_CONTENT_CODE
+        return jsonify({"error": "missing data"}), 400
     
     utilizador_id = data.get('utilizador_id')
     oferta_id = data.get('oferta_id')
     
     if not utilizador_id or not oferta_id:
-        return jsonify({"error": "Incomplete purchase details"}), BAD_REQUEST_CODE
+        return jsonify({"error": "Incomplete purchase details"}), 400
     
-    deu_erro = db.execute_buy(utilizador_id, oferta_id)
+    # Chamada à DB
+    resultado = db.execute_buy(utilizador_id, oferta_id)
     
-    if deu_erro:
-        return jsonify({"error": "Purchase Error"}), BAD_REQUEST_CODE
+    # Se o resultado for True, a compra correu BEM
+    if resultado is True:
+        return jsonify({
+            "message": "Purchase Done!", 
+            "detalhes": f"A oferta {oferta_id} foi adquirida pelo utilizador {utilizador_id}."
+        }), 200
     
-    return jsonify({"message": "Purchase Done!", "detalhes": f"A oferta {oferta_id} foi adquirida pelo utilizador {utilizador_id}."}), SUCCESS_CODE
+    # Se não for True, o 'resultado' contém a mensagem de erro da DB/Procedure
+    return jsonify({"error": "Purchase Failed", "reason": resultado}), 400
 
 
 #ORDER
