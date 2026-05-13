@@ -101,6 +101,7 @@ def add_reading(contador_id, kwh_valor, dados_audit):
     return True
 
 def get_anomalies():
+     conn = None
     resultado = []
     try:
         with get_connection() as conn:
