@@ -39,8 +39,7 @@ def login():
     if user is None:
         return jsonify({"error": "Check credentials"}), NOT_FOUND_CODE
 
-    token = jwt.encode(
-        {'user_id': user['id'], 'exp': datetime.now(timezone.utc)+ timedelta(minutes=5)}, app.config['SECRET_KEY'], 'HS256')
+    token = jwt.encode({'user_id': user['id'], 'exp': datetime.now(timezone.utc)+ timedelta(minutes=5)}, app.config['SECRET_KEY'], 'HS256')
 
     user["token"] = token
     #user["token"] = token
