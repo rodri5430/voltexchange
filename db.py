@@ -56,7 +56,7 @@ def login(username, password):
 
 #https://www.geeksforgeeks.org/python/hashing-passwords-in-python-with-bcrypt/
 def add_user(username, passwordText):
-    
+    conn = None
     bytes = passwordText.encode('utf-8')
     salt = bcrypt.gensalt()
     hash = bcrypt.hashpw(bytes, salt)
@@ -64,7 +64,7 @@ def add_user(username, passwordText):
     
     try:
         
-        with get_connection() as conn:
+        conn = get_connection()
             with conn.cursor() as cur:
                 cur.execute("INSERT INTO Utilizadores (username, password) VALUES (%s, %s) RETURNING UtilizadorID", (username, passwordHashed))
                 conn.commit()
