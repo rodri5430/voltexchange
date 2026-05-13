@@ -32,24 +32,24 @@ def home():
 def login():
     data = request.get_json()
     
-    # Usamos "nome" para ser consistente com a tua escolha anterior
+   
     if not data or "nome" not in data or "password" not in data:
         return jsonify({"error": "Parâmetros inválidos"}), 400
 
     user = db.login(data['nome'], data["password"])
 
-    # Se a função retornar uma string, houve erro de ligação/DB
+    
     if isinstance(user, str):
         return jsonify({"error": "Erro interno", "details": user}), 500
 
-    # Se retornar None, as credenciais falharam
+    
     if user is None:
         return jsonify({"error": "Credenciais incorretas"}), 401
 
-    # Geração do Token
+    
     token = jwt.encode({
         'user_id': user['id'], 
-        'exp': datetime.now(timezone.utc) + timedelta(minutes=30) # Aumentei para 30min para facilitar testes
+        'exp': datetime.now(timezone.utc) + timedelta(minutes=30)
     }, app.config['SECRET_KEY'], algorithm='HS256')
 
     user["token"] = token
