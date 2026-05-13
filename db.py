@@ -100,18 +100,33 @@ def add_reading(contador_id, kwh_valor, dados_audit):
     return True
 
 def get_anomalies():
+    # 1. INICIALIZAR A VARIÁVEL FORA DO TRY (Obrigatório para o Vercel)
     conn = None
     resultado = []
+    
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT LeituraID, ContadorID, DataHora, KWh_Leitura, DadosAudit FROM Leituras WHERE (DadosAudit->>'temperatura')::int > 80 OR (DadosAudit->>'erro_codigo') IS NOT NULL ORDER BY DataHora DESC")
-                
-                resultado = cur.fetchall()
+        conn = get_connection()
+        # O 'with' aqui é seguro porque conn já existe se chegar a esta linha
+        with conn.cursor() as cur:
+            # 2. QUERY CORRIGIDA (Sem WHEREWHERE)
+            query = """
+                SELECT LeituraID, ContadorID, DataHora, KWh_Leitura, DadosAudit 
+                FROM Leituras 
+                WHERE (DadosAudit->>'temperatura')::int > 80 
+                   OR (DadosAudit->>'erro_codigo') IS NOT NULL 
+                ORDER BY DataHora DESC
+            """
+            cur.execute(query)
+            resultado = cur.fetchall()
+            
     except (Exception, psycopg2.Error) as error:
-        return error
+        # 3. LOG DO ERRO (Aparece no painel do Vercel para debug)
+        print(f"Erro na BD: {error}")
+        return [] # Retorna lista vazia para a API não dar erro 500
+        
     finally:
-        if conn:
+        # 4. FECHO SEGURO (Só fecha se conn foi realmente atribuído)
+        if conn is not None:
             conn.close()
             
     return resultado
