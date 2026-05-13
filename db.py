@@ -108,8 +108,7 @@ def get_anomalies():
                 
                 resultado = cur.fetchall()
     except (Exception, psycopg2.Error) as error:
-        return "Error on fetching anomalies!"
-        print(error)
+        return error
     finally:
         if conn:
             cur.close()
