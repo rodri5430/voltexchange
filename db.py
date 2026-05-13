@@ -20,7 +20,7 @@ def user_exists(username):
     try:
         conn = get_connection()
         with conn.cursor() as cur:
-            cur.execute("SELECT COUNT(*) FROM Utilizadores WHERE username = %s", (username,))
+            cur.execute("SELECT COUNT(*) FROM Utilizadores WHERE nome = %s", (username))
             count = cur.fetchone()[0]
     except (Exception, psycopg2.Error) as error:
         print("Erro ao verificar utilizador:", error)
@@ -36,7 +36,7 @@ def login(username, password):
     try:
         conn = get_connection()
         with conn.cursor() as cur:
-            cur.execute("SELECT UtilizadorID, username, password FROM Utilizadores WHERE username = %s", [username])
+            cur.execute("SELECT UtilizadorID, nome, passwordHash FROM Utilizadores WHERE nome = %s", [username])
             user_tuple = cur.fetchone()
 
             if user_tuple:
