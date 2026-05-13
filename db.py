@@ -2,29 +2,6 @@ import json
 import os
 import bcrypt
 import psycopg2
-
-def test_db_connection():
-    """
-    Tenta estabelecer uma ligação à base de dados e retornar o status.
-    Útil para validar a comunicação entre o Vercel e o servidor da escola.
-    """
-    conn = None
-    try:
-        # Tenta obter a conexão usando a tua função já existente
-        conn = get_connection() 
-        with conn.cursor() as cur:
-            # Uma query simples que não altera dados
-            cur.execute("select * from leituras WHERE ContadorID = 2.1")
-            version = cur.fetchone()
-            # Se chegou aqui, a conexão foi bem sucedida
-            return f"Conexão completa! PostgreSQL: {version[0]}"
-    except Exception as e:
-        # Se falhar, retorna o erro para ajudar no debug
-        return f"Erro na conexão: {str(e)}"
-    finally:
-        # Garante que a conexão é fechada para não esgotar o pool
-        if conn:
-            conn.close()
      
 def get_connection():
   return psycopg2.connect(
