@@ -115,7 +115,7 @@ def get_anomalies():
             resultado = cur.fetchall()
             
     except (Exception, psycopg2.Error) as error:
-        return erro
+        return error
         
     finally:
         if conn is not None:
