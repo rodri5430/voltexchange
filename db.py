@@ -24,7 +24,6 @@ def user_exists(user):
         print ("Error while connecting to PostgreSQL", error)
     finally:
         if conn :
-            cur.close()
             conn.close()
     return count > 0
 
@@ -52,7 +51,6 @@ def login(username, password):
         return None
     finally:
         if conn:
-            cur.close()
             conn.close()
     return user
 
