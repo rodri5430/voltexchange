@@ -64,7 +64,7 @@ def register():
     if "username" not in data or "password" not in data:
         return jsonify({"error": "invalid parameters"}), BAD_REQUEST_CODE
 
-    if (db.user_exists(data)):
+    if (db.user_exists(data["nome"])):
         return jsonify({"error": "user already exists"}), BAD_REQUEST_CODE
 
     user = db.add_user(data['username'], data['password'])
