@@ -2,13 +2,16 @@ import json
 import os
 import bcrypt
 import psycopg2
-     
+from re import I
+
+import psycopg2
+            
 def get_connection():
   return psycopg2.connect(
         host="aid.estgoh.ipc.pt", 
         database="db2024153215", 
         user="a2024153215", 
-        password="RumoAo20"
+        password="RumoAo20",
     )
 
 def user_exists(user):
@@ -76,11 +79,11 @@ def add_user(username, passwordText):
         return None
     finally:
         if conn:
-            cur.close()
             conn.close()
     return id
     
 def add_reading(contador_id, kwh_valor, dados_audit):
+    conn = None
     try:
         with get_connection() as conn:
             with conn.cursor() as cur:
@@ -94,7 +97,6 @@ def add_reading(contador_id, kwh_valor, dados_audit):
         return False
     finally:
         if conn:
-            cur.close()
             conn.close()
         
     return True
@@ -114,6 +116,7 @@ def get_anomalies():
             conn.close()
             
     return resultado
+
 def execute_buy(comprador_id, oferta_id):
     try:
         with get_connection() as conn:
@@ -128,7 +131,6 @@ def execute_buy(comprador_id, oferta_id):
         return True
     finally:
         if conn:
-            cur.close()
             conn.close()
     return False
 
@@ -147,7 +149,6 @@ def execute_create_order(comprador_id, quantidade, preco_max):
         return True
     finally:
         if conn:
-            cur.close()
             conn.close()
 
     return False
@@ -167,6 +168,5 @@ def execute_matching_engine():
         return True
     finally:
         if conn:
-            cur.close()
             conn.close()
     return False
