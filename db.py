@@ -22,12 +22,15 @@ def user_exists(username):
         with conn.cursor() as cur:
             cur.execute("SELECT COUNT(*) FROM Utilizadores WHERE nome = %s", (username))
             count = cur.fetchone()[0]
+            if count > 0:
+               return True
+            else:
+               return False
     except (Exception, psycopg2.Error) as error:
         print("Erro ao verificar utilizador:", error)
     finally:
         if conn:
             conn.close()
-    return count > 0
 
 
 def login(nome, password):
