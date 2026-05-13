@@ -139,7 +139,7 @@ def execute_buy(comprador_id, oferta_id):
             # Chama a Procedure do PostgreSQL
             cur.execute("CALL sp_ExecutarCompraDireta(%s, %s)", (comprador_id, oferta_id))
             conn.commit()
-            return False # SUCESSO: Retorna True se o COMMIT funcionar
+            return True # SUCESSO: Retorna True se o COMMIT funcionar
             
     except (Exception, psycopg2.Error) as error:
         print(f"Erro na compra: {error}")
