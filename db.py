@@ -88,9 +88,7 @@ def add_reading(contador_id, kwh_valor, dados_audit):
     try:
         with get_connection() as conn:
             with conn.cursor() as cur:
-                dados_processados = json.dumps(dados_audit)
-                
-                cur.execute("INSERT INTO Leituras (ContadorID, DataHora, KWh_Leitura, DadosAudit)  VALUES (%s, CURRENT_TIMESTAMP, %s, %s)", (contador_id, kwh_valor, dados_audit))
+                cur.execute("INSERT INTO Leituras (ContadorID, DataHora, KWh_Leitura, DadosAudit)  VALUES (%s, CURRENT_TIMESTAMP, %s, %s)", (contador_id, kwh_valor, json.dumps(dados_audit)))
                 conn.commit()
             
     except (Exception, psycopg2.Error) as error:
