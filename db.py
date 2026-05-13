@@ -118,12 +118,9 @@ def get_anomalies():
             resultado = cur.fetchall()
             
     except (Exception, psycopg2.Error) as error:
-      )
-       
         return erro
         
     finally:
-        # 4. FECHO SEGURO (Só fecha se conn foi realmente atribuído)
         if conn is not None:
             conn.close()
             
