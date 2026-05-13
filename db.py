@@ -131,7 +131,7 @@ def get_anomalies():
             
     return resultado
 
-f execute_buy(comprador_id, oferta_id):
+def execute_buy(comprador_id, oferta_id):
     conn = None # Definir fora para o 'finally' e 'except' o reconhecerem
     try:
         conn = get_connection()
