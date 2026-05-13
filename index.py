@@ -20,10 +20,14 @@ FORBIDDEN_CODE = 403
 NOT_FOUND = 404
 SERVER_ERROR = 500
 
+
+#PAGINA ENTRADA
 @app.route('/', methods = ["GET"])
 def home():
     return "Olá Bem-Vindo à VoltExchange!!"
-    
+  
+  
+#LOGIN  
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -43,6 +47,8 @@ def login():
     return jsonify(user), OK_CODE
 
 
+
+#REGISTER
 @app.route('/api/auth/register', methods=['POST'])
 def register():
     data = request.get_json()
@@ -59,6 +65,8 @@ def register():
 
 
 
+
+#READINGS
 @app.route('/api/meters/readings', methods=['POST'])
 def add_readings():
         data = request.get_json()
@@ -74,11 +82,15 @@ def add_readings():
     
         
         resultado = db.add_reading(contador_id, leitura_kwh, json.dumps(data)) 
-        return jsonify(resultado), SUCCESS_CODE
+        status_code = SUCCESS_CODE if resultado else BAD_REQUEST_CODE
+    
+        return jsonify({"success": resultado}), status_code
 
+
+
+#ANOMALIES
 @app.route('/api/admin/anomalies', methods=['GET'])
 def get_anomalies():
-    
     
     lista_anomalias = db.get_anomalies()
     
@@ -87,8 +99,10 @@ def get_anomalies():
     
     return jsonify(lista_anomalias), OK_CODE
 
-@app.route('/api/market/buy', methods=['POST'])
 
+
+#BUY
+@app.route('/api/market/buy', methods=['POST'])
 def buy():
     data = request.get_json()
     
@@ -104,10 +118,12 @@ def buy():
     deu_erro = db.execute_buy(utilizador_id, oferta_id)
     
     if deu_erro:
-        return jsonify({"error": deu_erro}), BAD_REQUEST_CODE
+        return jsonify({"error": "Purchase Error"}), BAD_REQUEST_CODE
     
     return jsonify({"message": "Purchase Done!", "detalhes": f"A oferta {oferta_id} foi adquirida pelo utilizador {utilizador_id}."}), SUCCESS_CODE
 
+
+#ORDER
 @app.route('/api/market/order', methods=['POST'])
 def order():
     data = request.get_json()
@@ -129,6 +145,8 @@ def order():
     
     return jsonify({"message": "Ordem de compra registada!", "detalhes": f"Procura de {quantidade} kWh até {preco_max}€/kWh."}), SUCCESS_CODE   
 
+
+#MATCH
 @app.route('/api/market/match', methods=['POST'])
 def match():
     deu_erro = db.execute_matching_engine()
@@ -136,4 +154,4 @@ def match():
     if deu_erro:
         return jsonify({"error": deu_erro}), BAD_REQUEST_CODE
     
-    return jsonify({"message": "Matching executed with sucess!"}), SUCCESS_CODE
+    return jsonify({"message": "Motor de matching executado com sucesso!", "detalhes": "As ordens compatíveis foram processadas e as transações geradas."}), SUCCESS_CODE
