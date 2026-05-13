@@ -61,16 +61,18 @@ def login():
 def register():
     data = request.get_json()
 
-    if "username" not in data or "password" not in data:
-        return jsonify({"error": "invalid parameters"}), BAD_REQUEST_CODE
+    if not data or "username" not in data or "password" not in data:
+        return jsonify({"error": "invalid parameters"}), 400
 
-    if (db.user_exists(data["nome"])):
-        return jsonify({"error": "user already exists"}), BAD_REQUEST_CODE
+    if db.user_exists(data['nome']):
+        return jsonify({"error": "user already exists"}), 400
+       
+    user_id = db.add_user(data['username'], data['password'])
 
-    user = db.add_user(data['username'], data['password'])
-
-    return jsonify(user), SUCCESS_CODE
-
+    if isinstance(user_id, int):
+        return jsonify({"message": "User created", "id": user_id}), 201
+    else:
+        return jsonify({"error": "Registration failed", "details": user_id}), 500
 
 
 
