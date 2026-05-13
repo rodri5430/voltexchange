@@ -11,7 +11,6 @@ def get_connection():
         database="db2024153215", 
         user="a2024153215", 
         password="RumoAo20",
-        port = 5432
     )
 
 def user_exists(user):
@@ -30,6 +29,7 @@ def user_exists(user):
 
 
 def login(username, password):
+    user = None
     try:
         with get_connection() as conn:
             with conn.cursor() as cur:
@@ -81,20 +81,6 @@ def add_user(username, passwordText):
             cur.close()
             conn.close()
     return id
-
-def user_exists(user):
-    try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT COUNT(*) FROM users WHERE username = %s", [user["username"]])
-                count = cur.fetchone()[0]
-    except (Exception, psycopg2.Error) as error :
-        print ("Error while connecting to PostgreSQL", error)
-    finally:
-        if(conn):
-            cur.close()
-            conn.close()
-    return count > 0
     
 def add_reading(contador_id, kwh_valor, dados_audit):
     try:
