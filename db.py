@@ -67,6 +67,7 @@ def add_user(username, passwordText):
     
     try:
         conn = get_connection()
+        # ESTA LINHA ABAIXO (68) tem de estar alinhada com a de cima:
         with conn.cursor() as cur:
             cur.execute(
                 "INSERT INTO Utilizadores (username, password) VALUES (%s, %s) RETURNING UtilizadorID", 
