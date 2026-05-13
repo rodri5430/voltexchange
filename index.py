@@ -31,19 +31,29 @@ def home():
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     data = request.get_json()
-    if "username" not in data or "password" not in data:
-        return jsonify({"error": "invalid parameters"}), BAD_REQUEST_CODE
+    
+    # Usamos "nome" para ser consistente com a tua escolha anterior
+    if not data or "nome" not in data or "password" not in data:
+        return jsonify({"error": "Parâmetros inválidos"}), 400
 
-    user = db.login(data['username'], data["password"])
+    user = db.login(data['nome'], data["password"])
 
+    # Se a função retornar uma string, houve erro de ligação/DB
+    if isinstance(user, str):
+        return jsonify({"error": "Erro interno", "details": user}), 500
+
+    # Se retornar None, as credenciais falharam
     if user is None:
-        return jsonify({"error": "Check credentials"}), NOT_FOUND_CODE
+        return jsonify({"error": "Credenciais incorretas"}), 401
 
-    token = jwt.encode({'user_id': user['id'], 'exp': datetime.now(timezone.utc)+ timedelta(minutes=5)}, app.config['SECRET_KEY'], 'HS256')
+    # Geração do Token
+    token = jwt.encode({
+        'user_id': user['id'], 
+        'exp': datetime.now(timezone.utc) + timedelta(minutes=30) # Aumentei para 30min para facilitar testes
+    }, app.config['SECRET_KEY'], algorithm='HS256')
 
     user["token"] = token
-    #user["token"] = token
-    return jsonify(user), OK_CODE
+    return jsonify(user), 200
 
 
 #REGISTER
