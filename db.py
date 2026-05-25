@@ -1,167 +1,189 @@
-import os
 import json
-from datetime import datetime, timedelta, timezone
-from functools import wraps
-from flask import Flask, jsonify, request
-import jwt
-import db
+import os
+import bcrypt
+import psycopg2
+from re import I
 
-app = Flask(__name__)
-app.debug = True
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'mysecretkey')
+import psycopg2
+
+def get_connection():
+    return psycopg2.connect(
+        host=os.getenv('DATABASE_HOST'),
+        database=os.getenv('DATABASE_NAME'),
+        user=os.getenv('DATABASE_USER'),
+        password=os.getenv('DATABASE_PASSWORD')
+    )
+
+def user_exists(username):
+    conn = None
+    count = 0 
+    try:
+        conn = get_connection()
+        with conn.cursor() as cur:
+            cur.execute("SELECT COUNT(*) FROM Utilizadores WHERE nome = %s", [username])
+            count = cur.fetchone()[0]
+            if count > 0:
+               return True
+            else:
+               return False
+    except (Exception, psycopg2.Error) as error:
+        return str(error)
+    finally:
+        if conn:
+            conn.close()
 
 
-OK_CODE = 200
-SUCCESS_CODE = 201
-NO_CONTENT_CODE = 204
-BAD_REQUEST_CODE = 400
-UNAUTHORIZED_CODE = 401
-FORBIDDEN_CODE = 403
-NOT_FOUND = 404
-SERVER_ERROR = 500
+def login(nome, password):
+    conn = None
+    user = None
+    try:
+        conn = get_connection()
+        with conn.cursor() as cur:
+            cur.execute("SELECT UtilizadorID, Nome, PasswordHash FROM Utilizadores WHERE Nome = %s", [nome])
+            user_tuple = cur.fetchone()
 
+            if user_tuple:
+                user_id, db_nome, hashed_password = user_tuple
 
-# PAGINA ENTRADA
-@app.route('/', methods = ["GET"])
-def home():
-    return "Olá, Utilizador"
-  
-  
-# LOGIN  
-@app.route('/api/auth/login', methods=['POST'])
-def login():
-    data = request.get_json()
+                if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')): 
+                    user = {"id": user_id, "nome": db_nome}
+                else:
+                    print("DEBUG: Password incorreta para o utilizador", nome)
+            else:
+                print("DEBUG: Utilizador não encontrado:", nome)
     
-    if not data or "username" not in data or "password" not in data:
-        return jsonify({"error": "Parâmetros inválidos"}), BAD_REQUEST_CODE
-
-    user = db.login(data['username'], data["password"])
-
-    if isinstance(user, str):
-        return jsonify({"error": "Erro interno", "details": user}), SERVER_ERROR
-
-    if user is None:
-        return jsonify({"error": "Credenciais incorretas"}), UNAUTHORIZED_CODE
-
-    token = jwt.encode({
-        'user_id': user['id'], 
-        'exp': datetime.now(timezone.utc) + timedelta(minutes=30)
-    }, app.config['SECRET_KEY'], algorithm='HS256')
-
-    user["token"] = token
-    return jsonify(user), OK_CODE
+    except (Exception, psycopg2.Error) as error:
+        return str(error)
+    finally:
+        if conn: conn.close()
+    return user
 
 
-# REGISTER
-@app.route('/api/auth/register', methods=['POST'])
-def register():
-    data = request.get_json()
-
-    if not data or "username" not in data or "password" not in data:
-        return jsonify({"error": "invalid parameters"}), BAD_REQUEST_CODE
-
-    if db.user_exists(data['username']):
-        return jsonify({"error": "user already exists"}), BAD_REQUEST_CODE
-       
-    user_id = db.add_user(data['username'], data['password'])
-
-    if isinstance(user_id, int):
-        return jsonify({"message": "User created", "id": user_id}), SUCCESS_CODE
-    else:
-        return jsonify({"error": "Registration failed", "details": str(user_id)}), SERVER_ERROR
-
-
-# READINGS
-@app.route('/api/meters/readings', methods=['POST'])
-def add_readings():
-    data = request.get_json()
+#https://www.geeksforgeeks.org/python/hashing-passwords-in-python-with-bcrypt/
+def add_user(username, passwordText):
+    conn = None
+    # Hashing 
+    password_bytes = passwordText.encode('utf-8')
+    salt = bcrypt.gensalt()
+    passwordHashed = bcrypt.hashpw(password_bytes, salt).decode('utf-8')
     
-    if not data:
-        return jsonify({"error": "missing data"}), NO_CONTENT_CODE
-    
-    contador_id = data.get('ContadorID')
-    leitura_kwh = data.get('KWh_Leitura')
-    
-    if contador_id is None or leitura_kwh is None:
-        return jsonify({"error": "invalid parameters"}), BAD_REQUEST_CODE
-
-    resultado = db.add_reading(contador_id, leitura_kwh, data)
-    if resultado is True:
-        return jsonify({"success": True, "data": data}), SUCCESS_CODE
-    else:
-        return jsonify({"error": "Failed to add reading", "details": str(resultado)}), BAD_REQUEST_CODE
-
-
-# ANOMALIES
-@app.route('/api/admin/anomalies', methods=['GET'])
-def get_anomalies():
-    lista_anomalias = db.get_anomalies()
-    
-    if isinstance(lista_anomalias, str):
-        return jsonify({"error": "Database error", "details": lista_anomalias}), SERVER_ERROR
+    try:
+        conn = get_connection()
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO Utilizadores (Nome, PasswordHash) VALUES (%s, %s) RETURNING UtilizadorID", 
+                (username, passwordHashed)
+            )
+            conn.commit()
+            user_id = cur.fetchone()[0]
+            # Se chegou aqui, retornamos o ID
+            return user_id
+            
+    except (Exception, psycopg2.Error) as error:
+        if conn:
+            conn.rollback()
+        return str(error)
         
-    return jsonify(lista_anomalias), OK_CODE
+    finally:
+        if conn is not None:
+            conn.close()
+            
+            
+def add_reading(contador_id, kwh_valor, dados_audit):
+    conn = None
+    try:
+        conn = get_connection()
+        with conn.cursor() as cur:
+            cur.execute("INSERT INTO Leituras (ContadorID, DataHora, KWh_Leitura, DadosAudit)  VALUES (%s, CURRENT_TIMESTAMP, %s, %s)", (contador_id, kwh_valor, json.dumps(dados_audit)))
+            conn.commit()
+            return True
+    except (Exception, psycopg2.Error) as error:
+        if conn:
+            conn.rollback()
+            
+        return str(error)
+    finally:
+        if conn:
+            conn.close()
 
+def get_anomalies():
+    conn = None
+    resultado = []
+    
+    try:
+        conn = get_connection()
+        with conn.cursor() as cur:
+            query = """
+                SELECT LeituraID, ContadorID, DataHora, KWh_Leitura, DadosAudit 
+                FROM Leituras 
+                WHERE (DadosAudit ? 'temperatura' AND (DadosAudit->>'temperatura')::NUMERIC > 80) OR 
+                   (DadosAudit ? 'erro_codigo' AND DadosAudit->>'erro_codigo' IS NOT NULL)
+                ORDER BY DataHora DESC
+            """
+            cur.execute(query)
+            resultado = cur.fetchall()
+            
+    except (Exception, psycopg2.Error) as error:
+        return str(error)
+        
+    finally:
+        if conn is not None:
+            conn.close()
+            
+    return resultado
 
-# BUY
-@app.route('/api/market/buy', methods=['POST'])
-def buy():
-    data = request.get_json()
-    
-    if not data:
-        return jsonify({"error": "missing data"}), BAD_REQUEST_CODE
-    
-    utilizador_id = data.get('utilizador_id')
-    oferta_id = data.get('oferta_id')
-    
-    if not utilizador_id or not oferta_id:
-        return jsonify({"error": "Incomplete purchase details"}), BAD_REQUEST_CODE
-    
-    resultado = db.execute_buy(utilizador_id, oferta_id) 
+def execute_buy(comprador_id, oferta_id):
+    conn = None 
+    try:
+        conn = get_connection()
+        with conn.cursor() as cur:
+            cur.execute("CALL sp_ExecutarCompraDireta(%s, %s)", (oferta_id, comprador_id))
+            conn.commit()
+            return True
+            
+    except (Exception, psycopg2.Error) as error:
+        if conn:
+            conn.rollback()
+        return str(error)
+        
+    finally:
+        if conn:
+            conn.close()
 
-    if resultado is True:
-        return jsonify({
-            "message": "Purchase Done!", 
-            "detalhes": f"A oferta {oferta_id} foi adquirida pelo utilizador {utilizador_id}."
-        }), OK_CODE
-    
-    return jsonify({"error": "Purchase Failed", "reason": str(resultado)}), BAD_REQUEST_CODE
+def execute_create_order(comprador_id, quantidade, preco_max):
+    conn = None
+    try:
+        conn = get_connection()
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO OrdensCompra (CompradorID, QuantidadeKWh, PrecoMaximo, Estado) VALUES (%s, %s, %s, 'PENDENTE')", 
+                (comprador_id, quantidade, preco_max)
+            )
+            conn.commit()
+            return True
+            
+    except (Exception, psycopg2.Error) as error:
+        if conn:
+            conn.rollback()
+       
+        return str(error)
+        
+    finally:
+        if conn:
+            conn.close()
 
-
-# ORDER
-@app.route('/api/market/order', methods=['POST'])
-def order():
-    data = request.get_json()
-    
-    if not data:
-        return jsonify({"error": "missing data"}), NO_CONTENT_CODE
-    
-    comprador_id = data.get('comprador_id')
-    quantidade = data.get('quantidade')
-    preco_max = data.get('preco_max')
-    
-    if not all([comprador_id, quantidade, preco_max]):
-        return jsonify({"error": "incomplete parameters"}), BAD_REQUEST_CODE
-    
-    resultado = db.execute_create_order(comprador_id, quantidade, preco_max)
-    
-    if resultado is True:
-        return jsonify({
-            "message": "Ordem de compra registada!", 
-            "detalhes": f"Procura de {quantidade} kWh até {preco_max}€/kWh."
-        }), SUCCESS_CODE
-    
-    return jsonify({"error": "Failed to create order", "details": str(resultado)}), BAD_REQUEST_CODE
-
-
-# MATCH
-@app.route('/api/market/match', methods=['POST'])
-def match():
-    resultado = db.execute_matching_engine()
-    if resultado is True:
-        return jsonify({
-            "message": "Motor de matching executado com sucesso!", 
-            "detalhes": "As ordens compatíveis foram processadas e as transações geradas."
-        }), SUCCESS_CODE
-    
-    return jsonify({"error": "Matching Engine failed", "details": str(resultado)}), BAD_REQUEST_CODE
+def execute_matching_engine():
+    conn = None
+    try:
+        conn = get_connection()
+        with conn.cursor() as cur:
+            cur.execute("CALL sp_MatchingEngine()")
+            conn.commit()
+            return True
+    except (Exception, psycopg2.Error) as error:
+        if conn:
+            conn.rollback()
+        return str(error)
+    finally:
+        if conn:
+            conn.close()
