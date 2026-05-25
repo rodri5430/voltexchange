@@ -62,8 +62,6 @@ def login(nome, password):
 #https://www.geeksforgeeks.org/python/hashing-passwords-in-python-with-bcrypt/
 def add_user(username, passwordText):
     conn = None
-    user_id = None
-    
     # Hashing 
     password_bytes = passwordText.encode('utf-8')
     salt = bcrypt.gensalt()
@@ -175,6 +173,7 @@ def execute_create_order(comprador_id, quantidade, preco_max):
             conn.close()
 
 def execute_matching_engine():
+    conn = None
     try:
         conn = get_connection()
         with conn.cursor() as cur:
