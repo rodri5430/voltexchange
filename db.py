@@ -5,15 +5,14 @@ import psycopg2
 from re import I
 
 import psycopg2
-            
+
 def get_connection():
     return psycopg2.connect(
-        host=os.getenv('DB_HOST'),
-        database=os.getenv('DB_NAME'),
-        user=os.getenv('DB_USER'),
-        password=os.getenv('DB_PASSWORD')
+        host=os.getenv('DATABASE_HOST'),
+        database=os.getenv('DATABASE_NAME'),
+        user=os.getenv('DATABASE_USER'),
+        password=os.getenv('DATABASE_PASSWORD')
     )
-
 
 def user_exists(username):
     conn = None
@@ -21,14 +20,14 @@ def user_exists(username):
     try:
         conn = get_connection()
         with conn.cursor() as cur:
-            cur.execute("SELECT COUNT(*) FROM Utilizadores WHERE nome = %s", (username))
+            cur.execute("SELECT COUNT(*) FROM Utilizadores WHERE nome = %s", [username])
             count = cur.fetchone()[0]
             if count > 0:
                return True
             else:
                return False
     except (Exception, psycopg2.Error) as error:
-        print("Erro ao verificar utilizador:", error)
+        return str(error)
     finally:
         if conn:
             conn.close()
@@ -54,7 +53,6 @@ def login(nome, password):
                 print("DEBUG: Utilizador não encontrado:", nome)
     
     except (Exception, psycopg2.Error) as error:
-        print("Erro na DB:", error)
         return str(error)
     finally:
         if conn: conn.close()
@@ -86,30 +84,29 @@ def add_user(username, passwordText):
     except (Exception, psycopg2.Error) as error:
         if conn:
             conn.rollback()
-        print(f"Erro na BD: {error}")
-        return error
+        return str(error)
         
     finally:
         if conn is not None:
             conn.close()
+            
+            
 def add_reading(contador_id, kwh_valor, dados_audit):
     conn = None
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute("INSERT INTO Leituras (ContadorID, DataHora, KWh_Leitura, DadosAudit)  VALUES (%s, CURRENT_TIMESTAMP, %s, %s)", (contador_id, kwh_valor, json.dumps(dados_audit)))
-                conn.commit()
-            
+        conn = get_connection()
+        with conn.cursor() as cur:
+            cur.execute("INSERT INTO Leituras (ContadorID, DataHora, KWh_Leitura, DadosAudit)  VALUES (%s, CURRENT_TIMESTAMP, %s, %s)", (contador_id, kwh_valor, json.dumps(dados_audit)))
+            conn.commit()
+            return True
     except (Exception, psycopg2.Error) as error:
-        print(error)
         if conn:
             conn.rollback()
-        return False
+            
+        return str(error)
     finally:
         if conn:
             conn.close()
-        
-    return True
 
 def get_anomalies():
     conn = None
@@ -129,7 +126,7 @@ def get_anomalies():
             resultado = cur.fetchall()
             
     except (Exception, psycopg2.Error) as error:
-        return error
+        return str(error)
         
     finally:
         if conn is not None:
@@ -142,15 +139,14 @@ def execute_buy(comprador_id, oferta_id):
     try:
         conn = get_connection()
         with conn.cursor() as cur:
-            cur.execute("CALL sp_ExecutarCompraDireta(%s, %s)", (comprador_id, oferta_id))
+            cur.execute("CALL sp_ExecutarCompraDireta(%s, %s)", (oferta_id, comprador_id))
             conn.commit()
             return True
             
     except (Exception, psycopg2.Error) as error:
-        print(f"Erro na compra: {error}")
         if conn:
             conn.rollback()
-        return error
+        return str(error)
         
     finally:
         if conn:
@@ -169,10 +165,10 @@ def execute_create_order(comprador_id, quantidade, preco_max):
             return True
             
     except (Exception, psycopg2.Error) as error:
-        print(f"Erro ao criar ordem: {error}")
         if conn:
             conn.rollback()
-        return error
+       
+        return str(error)
         
     finally:
         if conn:
@@ -180,18 +176,15 @@ def execute_create_order(comprador_id, quantidade, preco_max):
 
 def execute_matching_engine():
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute("CALL sp_MatchingEngine()")
-                conn.commit()
+        conn = get_connection()
+        with conn.cursor() as cur:
+            cur.execute("CALL sp_MatchingEngine()")
+            conn.commit()
+            return True
     except (Exception, psycopg2.Error) as error:
-        return error
-        
         if conn:
             conn.rollback()
-            
-        return True
+        return str(error)
     finally:
         if conn:
             conn.close()
-    return False
