@@ -67,7 +67,7 @@ def add_user(username, passwordText, email):
         conn = get_connection()
         with conn.cursor() as cur:
             cur.execute(
-                "INSERT INTO Utilizadores (Nome, PasswordHash) VALUES (%s, %s, %s) RETURNING UtilizadorID", 
+                "INSERT INTO Utilizadores (Nome, PasswordHash, Email) VALUES (%s, %s, %s) RETURNING UtilizadorID", 
                 (username, passwordHashed, email)
             )
             conn.commit()
