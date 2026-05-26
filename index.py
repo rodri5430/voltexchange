@@ -36,7 +36,7 @@ def login():
     if not data or "nome" not in data or "password" not in data:
         return jsonify({"error": "Parâmetros inválidos"}), 400
 
-    user = db.login(data['nome'], data["password"])
+    user = db.login(data['nome'], data["password"], data["email"])
 
     
     if isinstance(user, str):
