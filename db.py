@@ -21,10 +21,7 @@ def user_exists(username):
         with conn.cursor() as cur:
             cur.execute("SELECT COUNT(*) FROM Utilizadores WHERE nome = %s", [username])
             count = cur.fetchone()[0]
-            if count > 0:
-               return True
-            else:
-               return False
+            return count > 0
     except (Exception, psycopg2.Error) as error:
         return str(error)
     finally:
