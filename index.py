@@ -36,7 +36,7 @@ def login():
     if not data or "nome" not in data or "password" not in data:
         return jsonify({"error": "Parâmetros inválidos"}), 400
 
-    user = db.login(data['nome'], data["password"], data["email"])
+    user = db.login(data['nome'], data["password"])
 
     
     if isinstance(user, str):
@@ -61,13 +61,13 @@ def login():
 def register():
     data = request.get_json()
 
-    if not data or "username" not in data or "password" not in data:
+    if not data or "username" not in data or "password" not in data or "email" not in data:
         return jsonify({"error": "invalid parameters"}), 400
 
-    if db.user_exists(data['nome']):
+   if db.user_exists(data['username']):
         return jsonify({"error": "user already exists"}), 400
        
-    user_id = db.add_user(data['username'], data['password'])
+   user_id = db.add_user(data['username'], data['email'], data['password'])
 
     if isinstance(user_id, int):
         return jsonify({"message": "User created", "id": user_id}), 201
