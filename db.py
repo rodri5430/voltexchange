@@ -78,7 +78,7 @@ def add_user(username, passwordText, email):
     except (Exception, psycopg2.Error) as error:
         if conn:
             conn.rollback()
-        return False
+        return str(e)
         
     finally:
         if conn is not None:
