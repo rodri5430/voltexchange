@@ -19,7 +19,7 @@ def user_exists(username):
     try:
         conn = get_connection()
         with conn.cursor() as cur:
-            cur.execute("SELECT COUNT(*) FROM Utilizadores WHERE username = %s", [username])
+            cur.execute("SELECT COUNT(*) FROM Utilizadores WHERE Nome= %s", [username])
             count = cur.fetchone()[0]
             return count > 0
     except (Exception, psycopg2.Error) as error:
@@ -56,7 +56,7 @@ def login(nome, password):
 
 
 #https://www.geeksforgeeks.org/python/hashing-passwords-in-python-with-bcrypt/
-def add_user(username, passwordText):
+def add_user(username, passwordText, email):
     conn = None
     # Hashing 
     password_bytes = passwordText.encode('utf-8')
@@ -67,8 +67,8 @@ def add_user(username, passwordText):
         conn = get_connection()
         with conn.cursor() as cur:
             cur.execute(
-                "INSERT INTO Utilizadores (Nome, PasswordHash) VALUES (%s, %s) RETURNING UtilizadorID", 
-                (username, passwordHashed)
+                "INSERT INTO Utilizadores (Nome, PasswordHash) VALUES (%s, %s, %s) RETURNING UtilizadorID", 
+                (username, passwordHashed, email)
             )
             conn.commit()
             user_id = cur.fetchone()[0]
