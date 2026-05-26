@@ -23,7 +23,7 @@ def user_exists(username):
             count = cur.fetchone()[0]
             return count > 0
     except (Exception, psycopg2.Error) as error:
-        return str(error)
+        return None
     finally:
         if conn:
             conn.close()
