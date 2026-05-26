@@ -81,7 +81,7 @@ def add_user(username, passwordText):
     except (Exception, psycopg2.Error) as error:
         if conn:
             conn.rollback()
-        return str(error)
+        return False
         
     finally:
         if conn is not None:
@@ -100,7 +100,7 @@ def add_reading(contador_id, kwh_valor, dados_audit):
         if conn:
             conn.rollback()
             
-        return str(error)
+        return False
     finally:
         if conn:
             conn.close()
@@ -123,7 +123,7 @@ def get_anomalies():
             resultado = cur.fetchall()
             
     except (Exception, psycopg2.Error) as error:
-        return str(error)
+        return False
         
     finally:
         if conn is not None:
@@ -143,7 +143,7 @@ def execute_buy(comprador_id, oferta_id):
     except (Exception, psycopg2.Error) as error:
         if conn:
             conn.rollback()
-        return str(error)
+        return False
         
     finally:
         if conn:
@@ -165,7 +165,7 @@ def execute_create_order(comprador_id, quantidade, preco_max):
         if conn:
             conn.rollback()
        
-        return str(error)
+        return False
         
     finally:
         if conn:
@@ -182,7 +182,7 @@ def execute_matching_engine():
     except (Exception, psycopg2.Error) as error:
         if conn:
             conn.rollback()
-        return str(error)
+        return False
     finally:
         if conn:
             conn.close()
