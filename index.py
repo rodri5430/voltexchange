@@ -72,7 +72,7 @@ def register():
     if isinstance(user_id, int):
         return jsonify({"message": "User created", "id": user_id}), 201
     else:
-        return jsonify({"error": "Registration failed", "details": user_id}), 500
+        return jsonify({"error": "Registration failed", "details": user_id}), BAD_REQUEST
 
 
 
