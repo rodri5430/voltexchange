@@ -119,7 +119,7 @@ def buy():
     if not data:
         return jsonify({"error": "missing data"}), 400
     
-    utilizador_id = data.get('utilizador_id')
+    utilizador_id = data.get('comprador_id')
     oferta_id = data.get('oferta_id')
     
     if not utilizador_id or not oferta_id:
