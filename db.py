@@ -183,3 +183,28 @@ def execute_matching_engine():
     finally:
         if conn:
             conn.close()
+
+def remover_utilizador(id):
+    conn = None
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute('SELECT tam.fn_remove_utilizador(%s)', (id,))
+
+        resultado = cursor.fetchone()[0]
+
+        conn.commit()
+
+        return resultado
+    except Exception as e:
+
+        if conn:
+            conn.rollback()
+
+        print("ERRO AO ELIMINAR UTILIZADOR: ", repr(e))
+        return False
+    finally:
+        if conn:
+            conn.close()
